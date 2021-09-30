@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 
 
 namespace ToDo
@@ -8,56 +8,30 @@ namespace ToDo
     {
         static void Main(string[] args)
         {
-            string[] startupMessage = File.ReadAllLines("startupMessage.txt");
+            string taskFile = "Tasks.txt";
 
-            if (args.Length == 0)
-            {
-                foreach (var line in startupMessage)
-                {
-                    Console.WriteLine(line);
-                }
-            }
+            AddCommand a = new AddCommand();
+            RemoveCommand r = new RemoveCommand();
+            ListCommand l = new ListCommand();
+            CompleteCommand c = new CompleteCommand();
 
-            Console.WriteLine();
+            Dictionary<string, Command> arguments = new Dictionary<string, Command>()
+            {
+                {"-a", a}, {"-r", r}, {"-l",l}, {"-c",c}
+            };
 
-            if (args.Length > 0)
+            if (args.Length != 0)
             {
-                SwitchArgument(args[0]);
-            }
-            else
-            {
-                string userInput = "";
-                do
-                {
-                    userInput = Console.ReadLine();
-                    SwitchArgument(userInput);
-                } while (userInput != "-q");
+                GetSwitch(arguments, args, taskFile);
             }
         }
 
-        public static void SwitchArgument(string argument)
+        public static void GetSwitch(Dictionary<String, Command> switchers, string[] args, string path)
         {
-            Todos todos = new Todos();
-
-            switch (argument)
+            Command switcher = switchers[args[0]];
+            if (switcher.Validate(args))
             {
-                case "-l":
-                    todos.PrintAllTasks();
-                    break;
-                case "-a":
-                    string task = Console.ReadLine();
-                    todos.AddTask(task);
-                    break;
-                case "-r":
-                    todos.RemoveTask(int.Parse("1"));
-                    break;
-                case "-c":
-                    todos.CompleteTask(int.Parse("1"));
-                    todos.PrintAllTasks();
-                    break;
-                default:
-                    Console.WriteLine("Try Again.");
-                    break;
+                switcher.Execute(args, path);
             }
         }
     }
